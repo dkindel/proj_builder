@@ -56,6 +56,8 @@ func build(extract bool) {
 	failures = make([]string, 0, 20)
 	successes = make([]string, 0, 40)
 
+	cwd, _ := os.Getwd()
+
 	err := os.Chdir(project_dir)
 	if err != nil {
 		fmt.Println(err)
@@ -74,7 +76,7 @@ func build(extract bool) {
 		writeLog(0, "Building project for: "+studentName)
 		err := os.Chdir(studentName + "/Submission attachment(s)")
 		if err != nil {
-			fmt.Println(err)
+			fmt.Println("Could not cd into Submission attachment(s): " + err.Error())
 			continue
 		}
 		submission_files, err := ioutil.ReadDir("./")
@@ -86,7 +88,7 @@ func build(extract bool) {
 		//extract files from compression and copy them to root folder
 		if extract {
 			if err := extractAnyFiles(submission_files); err != nil {
-				addFailure(studentName, err.Error())
+				addFailure(studentName, "Error extracting files: "+err.Error())
 				os.Chdir("../..")
 				continue
 			}
@@ -97,13 +99,42 @@ func build(extract bool) {
 		//
 		err = os.Chdir("../Feedback Attachment(s)/" + workingDirName)
 		if err != nil {
-			addFailure(studentName, err.Error())
+			addFailure(studentName, "Could not cd into Feedback Attachment(s)/"+workingDirName+": "+err.Error())
 			os.Chdir("../..")
 			continue
 		}
-		if _, err := os.Stat("main.cpp"); os.IsNotExist(err) {
+		/*if _, err := os.Stat("main.cpp"); os.IsNotExist(err) {
 			addFailure(studentName, "No main file.")
 			err = os.Chdir("../../..")
+			continue
+		}*/
+		//Check to make sure good files have been copied
+		d, err := os.Open(".")
+		if err != nil {
+			addFailure(studentName, "Could not look at Feedback Attachment(s)/"+workingDirName+": "+err.Error())
+			os.Chdir("../../..")
+			continue
+		}
+		defer d.Close()
+		files, err := d.Readdir(-1)
+		if err != nil {
+			addFailure(studentName, "Could not look at Feedback Attachment(s)/"+workingDirName+": "+err.Error())
+			os.Chdir("../../..")
+			continue
+		}
+
+		goodfiles := false
+		for _, file := range files {
+			if file.Mode().IsRegular() {
+				if filepath.Ext(file.Name()) == ".cpp" || filepath.Ext(file.Name()) == ".c" {
+					goodfiles = true
+					break
+				}
+			}
+		}
+		if !goodfiles {
+			addFailure(studentName, "No *.cpp or *.c files have been found!")
+			os.Chdir("../../..")
 			continue
 		}
 
@@ -124,7 +155,7 @@ func build(extract bool) {
 
 		addSuccess(studentName)
 	}
-	os.Chdir("../")
+	os.Chdir(cwd)
 	writeSummary()
 }
 
@@ -183,6 +214,11 @@ func isDir(file os.FileInfo) bool {
 //if any files do, it uncompressed them
 //This will also move all of the .cpp and .hpp files up to the root dir
 func extractAnyFiles(file_list []os.FileInfo) error {
+	//make directory in Feedback Attachments (where we put files to compile)
+	if err := os.Mkdir("../Feedback Attachment(s)/"+workingDirName, 0777); err != nil {
+		return err
+	}
+
 	for _, f := range file_list {
 		ext := filepath.Ext(f.Name())
 		if ext == ".zip" || ext == ".7z" || ext == ".gz" || ext == ".tar" || ext == ".rar" {
@@ -190,7 +226,7 @@ func extractAnyFiles(file_list []os.FileInfo) error {
 			writeLog(1, "unzipping file: "+f.Name())
 			cmd := exec.Command("7z", "x", f.Name())
 			if err := cmd.Run(); err != nil {
-				fmt.Println(err)
+				fmt.Println("First unzip error: " + err.Error())
 				return err
 			}
 		}
@@ -198,7 +234,7 @@ func extractAnyFiles(file_list []os.FileInfo) error {
 	//7z will only un gzip files if the ext is .tar.gz - check for a tar
 	new_files, err := ioutil.ReadDir("./")
 	if err != nil {
-		fmt.Println(err)
+		fmt.Println("Read dir error: " + err.Error())
 		return err
 	}
 	for _, f := range new_files {
@@ -206,14 +242,10 @@ func extractAnyFiles(file_list []os.FileInfo) error {
 			writeLog(1, "unzipping file: "+f.Name())
 			cmd := exec.Command("7z", "x", f.Name())
 			if err := cmd.Run(); err != nil {
-				fmt.Println(err)
+				fmt.Println("Second unzip error: " + err.Error())
 				return err
 			}
 		}
-	}
-	//make directory in Feedback Attachments (where we put files to compile)
-	if err := os.Mkdir("../Feedback Attachment(s)/"+workingDirName, 0777); err != nil {
-		return err
 	}
 	if err := filepath.Walk("./", checkDir); err != nil {
 		return err

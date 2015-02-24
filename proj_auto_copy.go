@@ -18,7 +18,9 @@ func copy_ideal() {
 		fmt.Println(idealDir + " doesn't exist.  Aborting...")
 		return
 	}
-
+	ideal, _ := os.Getwd()
+	ideal += "/" + idealDir
+	fmt.Println(ideal)
 	err := os.Chdir(project_dir)
 	if err != nil {
 		fmt.Println(err)
@@ -41,7 +43,7 @@ func copy_ideal() {
 			continue
 		}
 		for _, f := range test_cases {
-			os.Link("../../../"+idealDir+"/"+f, "./"+f)
+			os.Link(ideal+"/"+f, "./"+f)
 		}
 		os.Chdir("../../")
 	}
@@ -53,6 +55,8 @@ func copy_inputs() {
 		fmt.Println(inputsDir + " doesn't exist.  Aborting...")
 		return
 	}
+	trueInputsDir, _ := os.Getwd()
+	trueInputsDir += "/" + inputsDir
 
 	err := os.Chdir(project_dir)
 	if err != nil {
@@ -76,7 +80,7 @@ func copy_inputs() {
 			continue
 		}
 		for _, f := range inputs {
-			os.Link("../../../"+inputsDir+"/"+f, "./"+f)
+			os.Link(trueInputsDir+"/"+f, "./"+f)
 		}
 		os.Chdir("../../")
 	}

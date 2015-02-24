@@ -32,16 +32,17 @@ import (
 	"flag"
 	"fmt"
 	"io/ioutil"
+	"os"
 )
 
 //directories
 //These can be either relative (from go script dir) or absolute
-const project_dir = "Project_3_working"
-const binName = "simulate"
+const project_dir = "../Project_1_working"
+const binName = "myAssembler"
 const workingDirName = "AutoGenDir"
-const idealDir = "proj3_ideal"
-const inputsDir = "proj3_inputs"
-const numTestCases = 2
+const idealDir = "../proj1_ideal"
+const inputsDir = "../proj1_inputs"
+const numTestCases = 4
 
 var test_cases [numTestCases]string
 var inputs [numTestCases]string
@@ -51,7 +52,7 @@ func main() {
 	var cideal_bool = flag.Bool("copy_ideal", false, "Copy the ideal files to the working directory.")
 	var cinput_bool = flag.Bool("copy_inputs", false, "Copy the inputs files to the working directory")
 	var b_bool = flag.Bool("b", false, "Build the project.")
-	var r_bool = flag.Bool("r", true, "Run the project.")
+	var r_bool = flag.Bool("r", false, "Run the project.")
 	flag.Parse()
 	extract := *x_bool
 	cideal := *cideal_bool
@@ -68,7 +69,7 @@ func main() {
 			continue
 		}
 		test_cases[i] = file.Name()
-		fmt.Println(file.Name())
+		//fmt.Println(file.Name())
 	}
 
 	files, err = ioutil.ReadDir(inputsDir)
@@ -80,7 +81,7 @@ func main() {
 			continue
 		}
 		inputs[i] = file.Name()
-		fmt.Println(file.Name())
+		//fmt.Println(file.Name())
 	}
 
 	/*test_cases[0] = "test_case_ideal.txt"
@@ -92,6 +93,10 @@ func main() {
 	inputs[2] = "test_case2.asm"
 	inputs[3] = "test_case3.asm"
 	*/
+
+	//we'll use this for sanity checks before entering each next stage
+	cwd, _ := os.Getwd()
+
 	if b {
 		fmt.Println("Building project for all students")
 		if extract {
@@ -99,14 +104,17 @@ func main() {
 		}
 		build(extract)
 	}
+	os.Chdir(cwd)
 	if cideal {
 		fmt.Println("Copying ideal files (to compare tests against) from " + idealDir + " for all students")
 		copy_ideal()
 	}
+	os.Chdir(cwd)
 	if cinput {
 		fmt.Println("Copying inputs " + inputsDir + " for all students")
 		copy_inputs()
 	}
+	os.Chdir(cwd)
 	if r {
 		fmt.Println("Running the project for all students")
 		run()
