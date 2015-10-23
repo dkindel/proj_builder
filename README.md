@@ -27,7 +27,7 @@ sudo apt-get install qt-sdk
 ###Set up file locations
 From scholar, all files are downloaded into a bulk zip file named bulk_download.zip.  Pretty straightworward file name.  The user will extract that file into a place of his choosing.  We assume a structure similar to this, after extraction:
 
-// This project assumes that the directory structre resembles the following
+```golang
 // -.go files
 // -idealDir
 // -inputsDir
@@ -35,15 +35,18 @@ From scholar, all files are downloaded into a bulk zip file named bulk_download.
 // --Students
 // ---Feedback Attachment(s)
 // ---Submission attachments(s)
+```
 
 The .go files may be in a different subdirectory, however, as long as they reference the project directory and the inputs and ideal directories appropriatly.  Those can be modified inside the proj_auto_main.go file.
 
+```go
 const project_dir = "../Project_1_working"
 const binName = "myAssembler"
 const workingDirName = "AutoGenDir"
 const idealDir = "../proj1_ideal"
 const inputsDir = "../proj1_inputs"
 const numTestCases = 4
+```
 
 Each one of these parameters are customizable to work appropriately with your specific project.  
 
