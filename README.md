@@ -28,7 +28,8 @@ sudo apt-get install qt-sdk
 From scholar, all files are downloaded into a bulk zip file named bulk_download.zip.  Pretty straightworward file name.  The user will extract that file into a place of his choosing.  We assume a structure similar to this, after extraction:
 
 ```golang
-// -.go files
+// -go dir
+// --.go files
 // -idealDir
 // -inputsDir
 // -project_dir
